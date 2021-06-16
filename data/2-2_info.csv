@@ -1,0 +1,9 @@
+subject,exam_1,exam_2,exam_per,quiz_cnt,quiz_unit,quiz_score,task_unit,task_scores
+수학세미나I,TRUE,TRUE,30,2,0.2,10,1,10/10
+선형대수학,TRUE,TRUE,35,6,0.5,5,0,
+생명정보학,FALSE,FALSE,0,2,1,20,1,30/30
+미적분학II,TRUE,TRUE,35,6,0.5,5,0,
+일본어I,TRUE,TRUE,30,1,1,20,1,20
+물리학세미나I,TRUE,TRUE,30,0,0,0,1,20/20
+정보과학세미나,FALSE,TRUE,40,0,0,0,1,15/15/15/15
+정보과학프로젝트I,FALSE,TRUE,30,3,1,15,1,25

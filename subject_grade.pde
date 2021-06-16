@@ -40,7 +40,6 @@ class subject_grade {
     int2grade.put(1.0, "D0");
     int2grade.put(0.7, "D-");
     int2grade.put(0.0, "F");
-    int2grade.put(0.0, "");
     
   }
   float getgrade() {

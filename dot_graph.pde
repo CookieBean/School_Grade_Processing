@@ -76,29 +76,31 @@ class dot_graph {
     fill(0);
     float pre_x = -1, pre_y = 0;
     stroke(0, 0, 255);
+    float[] avg = new float[5];
     for(int i=0;i<5;i++) {
-      float avg = 0, total_time = 0;
+      float total_time = 0;
+      avg[i] = 0;
       ArrayList<subject_grade> select_list = new ArrayList<subject_grade>();
       for(subject_grade s : sg.get(i)) {
         if(mode == 0) {
-          avg += s.getgrade()*s.time;
+          avg[i] += s.getgrade()*s.time;
           total_time += s.time;
           select_list.add(s);
         } else {
           if(s.id == mode) {
-            avg += s.getgrade()*s.time;
+            avg[i] += s.getgrade()*s.time;
             total_time += s.time;
             select_list.add(s);
           }
         }
       }
-      avg /= total_time;
-      avg = (float)(round(avg*100))/100;
+      avg[i] /= total_time;
+      avg[i] = (float)(round(avg[i]*100))/100;
       float cur_x = map(i, 0, 4, start_x+20, end_x - 20);
-      float cur_y = map(avg, min, max, end_y, start_y);
+      float cur_y = map(avg[i], min, max, end_y, start_y);
       float coe = 1;
       if(pre_x >= 0 && total_time > 0) {
-        line(pre_x, pre_y, map(i, 0, 4, start_x+20, end_x - 20), map(avg, min, max, end_y, start_y));
+        line(pre_x, pre_y, map(i, 0, 4, start_x+20, end_x - 20), map(avg[i], min, max, end_y, start_y));
       }
       if(dist(mouseX, mouseY, cur_x, cur_y) <= dot_size/2) {
         if(!flag[i]) {
@@ -107,29 +109,6 @@ class dot_graph {
         }
         if(time[i] < PI/4) time[i] += PI/100;
         coe = exp(-time[i]/4) * sin(time[i]*2) + 1;
-        fill(0);
-        text(str(avg), cur_x, cur_y - 20);
-        fill(255);
-        stroke(0);
-        strokeWeight(3);
-        int st_x = 0;
-        if(cur_x + 200 > width) st_x = (int)cur_x - 400;
-        else st_x = (int)cur_x - 200;
-        rect(st_x, cur_y + 20, st_x + 400, cur_y + 40 + 30*select_list.size());
-        strokeWeight(1);
-        fill(0);
-        textAlign(LEFT);
-        text("해당 과목 : ", st_x + 20, cur_y + 50);
-        int j = 0;
-        for(subject_grade s:select_list) {
-          textAlign(LEFT);
-          text(s.name, st_x + 150, cur_y + 50 + 30*j);
-          textAlign(RIGHT);
-          text(s.grade, st_x + 380, cur_y + 50 + 30*j);
-          j++;
-        }
-        textAlign(CENTER);
-        stroke(0, 0, 255);
       } else {
         flag[i] = false;
         coe = exp(-time[i]/4) * sin(time[i]*2) + 1;
@@ -145,6 +124,47 @@ class dot_graph {
       }
       fill(0);
       text(sem_list[i], cur_x, end_y + 40);
+    }
+    for(int i=0;i<5;i++) {
+      float cur_x = map(i, 0, 4, start_x+20, end_x - 20);
+      float cur_y = map(avg[i], min, max, end_y, start_y);
+      ArrayList<subject_grade> select_list = new ArrayList<subject_grade>();
+      for(subject_grade s : sg.get(i)) {
+        if(mode == 0) {
+          select_list.add(s);
+        } else {
+          if(s.id == mode) {
+            select_list.add(s);
+          }
+        }
+      }
+      if(dist(mouseX, mouseY, cur_x, cur_y) <= dot_size/2) {
+        fill(0);
+        text(str(avg[i]), cur_x, cur_y - 20);
+        fill(255);
+        stroke(0);
+        strokeWeight(3);
+        int st_x = 0, st_y = 0;
+        if(cur_x + 230 > width) st_x = (int)cur_x - 500;
+        else st_x = (int)cur_x - 250;
+        if(cur_y + 40 + 30*select_list.size() > height) st_y = (int)cur_y - 40 - 30*select_list.size();
+        else st_y = (int)cur_y;
+        rect(st_x, st_y + 20, st_x + 500, st_y + 40 + 30*select_list.size());
+        strokeWeight(1);
+        fill(0);
+        textAlign(LEFT);
+        text("해당 과목 : ", st_x + 20, st_y + 50);
+        int j = 0;
+        for(subject_grade s:select_list) {
+          textAlign(LEFT);
+          text(s.name, st_x + 150, st_y + 50 + 30*j);
+          textAlign(RIGHT);
+          text(s.grade, st_x + 480, st_y + 50 + 30*j);
+          j++;
+        }
+        textAlign(CENTER);
+        stroke(0, 0, 255);
+      }
     }
   }
 }

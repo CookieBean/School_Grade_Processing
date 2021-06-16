@@ -117,8 +117,9 @@ class Score {
     if(quantization) {
       int unit = h / (int)score;
       Boolean mx = true;
-      if(!(x <= locked_mouseX && locked_mouseX <= x+w)) {
-        cur_score = 0;
+      cur_score = 0;
+      if(!(x <= mouseX && mouseX <= x+w)) {
+        
         mx = false;
       }
       Boolean flag = true, flag_ = true, text_filled = false, text_filled_ = false;

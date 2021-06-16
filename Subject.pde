@@ -1,5 +1,5 @@
 class Subject {
-  String name;
+  String name, cur_sem;
   int quiz_cnt, quiz_score, start_x = 325, end_x = 1425, exam_per, cnt;
   Boolean exam_1, exam_2;
   Table table, grade_table;
@@ -13,7 +13,7 @@ class Subject {
   Table timeTable;
   HashMap<String, Integer> timeMap = new HashMap<String, Integer>();
   subject_grade sg = new subject_grade(0, 0, "", "", "P");
-  Subject(String name_, Boolean exam_1_, Boolean exam_2_, int exam_per_, int quiz_cnt_, float quiz_unit_, int quiz_score_, float task_unit_, Table table_, int... tasks_) {
+  Subject(String name_, Boolean exam_1_, Boolean exam_2_, int exam_per_, int quiz_cnt_, float quiz_unit_, int quiz_score_, float task_unit_, Table table_, String cur_sem_, int... tasks_) {
     name = name_;
     quiz_cnt = quiz_cnt_;
     exam_1 = exam_1_;
@@ -22,6 +22,7 @@ class Subject {
     quiz_unit = quiz_unit_;
     task_unit = task_unit_;
     table = table_;
+    cur_sem = cur_sem_;
     tasks = new int[tasks_.length];
     for(int i=0;i<tasks_.length;i++) {
       tasks[i] = tasks_[i];
@@ -31,25 +32,49 @@ class Subject {
     colors = new color[cnt];
     bars = new Score[cnt];
     int i = 0;
+    TableRow tr = loadTable(cur_sem + "_score.csv", "header").findRow(name, "subject");
+    String _quiz = tr.getString("quiz_score");
+    String _exam1 = tr.getString("exam_1");
+    String _exam2 = tr.getString("exam_2");
+    String _task = tr.getString("task_score");
     while(i<quiz_cnt) {
       colors[i] = color((int)map(i, 0, cnt-1, 255, 127), 127, (int)map(i, 0, cnt-1, 127, 255));
-      bars[i] = new Score(start_x + (end_x - start_x)/cnt * i, 100, quiz_score, 50, 600, true, quiz_unit, "퀴즈 " + str(i+1), colors[i], 1); i++;
+      bars[i] = new Score(start_x + (end_x - start_x)/cnt * i, 100, quiz_score, 50, 600, true, quiz_unit, "퀴즈 " + str(i+1), colors[i], 1); 
+      if(!_quiz.equals("") && i < _quiz.split(",").length) {
+        bars[i].locked_mouseX = bars[i].x;
+        bars[i].locked_mouseY = (int)map(Float.parseFloat(_quiz.split(",")[i]) - 0.03, 0, quiz_score, bars[i].y+bars[i].h, bars[i].y);
+      }
+      i++;
     }
     if(exam_1) {
       colors[i] = color((int)map(i, 0, cnt-1, 255, 127), 127, (int)map(i, 0, cnt-1, 127, 255));
-      bars[i] = new Score(start_x + (end_x - start_x)/cnt * i, 100, 100, 50, 600, false, 0, "시험 1회고사", colors[i], (float)exam_per/100); i++;
+      bars[i] = new Score(start_x + (end_x - start_x)/cnt * i, 100, 100, 50, 600, false, 0, "시험 1회고사", colors[i], (float)exam_per/100); 
+      bars[i].locked_mouseX = bars[i].x;
+      bars[i].locked_mouseY = (int)map(Float.parseFloat(_exam1) - 0.03, 0, 100, bars[i].y+bars[i].h, bars[i].y);
+      i++;
       //println(name, "asdf");
     }
     if(exam_2) {
       colors[i] = color((int)map(i, 0, cnt-1, 255, 127), 127, (int)map(i, 0, cnt-1, 127, 255));
-      bars[i] = new Score(start_x + (end_x - start_x)/cnt * i, 100, 100, 50, 600, false, 0, "시험 2회고사", colors[i], (float)exam_per/100); i++;
+      bars[i] = new Score(start_x + (end_x - start_x)/cnt * i, 100, 100, 50, 600, false, 0, "시험 2회고사", colors[i], (float)exam_per/100); 
+      bars[i].locked_mouseX = bars[i].x;
+      bars[i].locked_mouseY = (int)map(Float.parseFloat(_exam2) - 0.03, 0, 100, bars[i].y+bars[i].h, bars[i].y);
+      i++;
       //println(name, "asdf");
     }
+    int j = 0;
     while(i<cnt) {
       colors[i] = color((int)map(i, 0, cnt-1, 255, 127), 127, (int)map(i, 0, cnt-1, 127, 255));
-      bars[i] = new Score(start_x + (end_x - start_x)/cnt * i, 100, tasks[i - quiz_cnt - int(exam_1) - int(exam_2)], 50, 600, true, task_unit, "수행평가 " + str(i + 1 - quiz_cnt - int(exam_1) - int(exam_2)), colors[i], 1); i++;
+      bars[i] = new Score(start_x + (end_x - start_x)/cnt * i, 100, tasks[i - quiz_cnt - int(exam_1) - int(exam_2)], 50, 600, true, task_unit, "수행평가 " + str(i + 1 - quiz_cnt - int(exam_1) - int(exam_2)), colors[i], 1); 
+      if(!_task.equals("") && j < _task.split(",").length) {
+        bars[i].locked_mouseX = bars[i].x;
+        bars[i].locked_mouseY = (int)map(Float.parseFloat(_task.split(",")[j]) - 0.03, 0, tasks[j], bars[i].y+bars[i].h, bars[i].y);
+      }
+      i++; j++;
     }
     total_score = new Total(1395, 100, 100, 130, 600, false, 0, name + " 학점", colors);
+    show();
+    //for(int k=0;k<cnt;k++) print(str(bars[k].cur_score) + " ");
   }
   Subject(String name_, Table grade_table_, int start_x_, int end_x_) {
     name = name_;
@@ -132,14 +157,10 @@ class Subject {
       }
     }
   }
-  void saveRow(Boolean flag) {
+  void saveRow(Table _save) {
     TableRow tmp;
-    if(!flag) {
-      tmp = table.addRow();
-      tmp.setString("subject", name);
-    } else {
-      tmp = table.findRow(name, "subject");
-    }
+    tmp = _save.addRow();
+    tmp.setString("subject", name);
     if(exam_1) tmp.setFloat("exam_1", bars[quiz_cnt - 1 + int(exam_1)].cur_score);
     if(exam_2) tmp.setFloat("exam_2", bars[quiz_cnt - 1 + int(exam_1) + int(exam_2)].cur_score);
     if(quiz_cnt > 0) {
@@ -168,6 +189,7 @@ class Subject {
       TableRow tmp = store.addRow();
       tmp.setString("subject", s.name);
       tmp.setInt("time", timeMap.get(s.name));
+      if(s.name.equals("창의적공학설계")) println((float)round(s.cur_score * 100)/100);
       tmp.setString("grade", sg.getgrade((float)round(s.cur_score * 100)/100));
     }
     saveTable(store,  "data/"+ name.substring(0, 3) + ".csv");

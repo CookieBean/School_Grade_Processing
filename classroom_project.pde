@@ -18,17 +18,14 @@ int dt;
 void setup() {
   //println(Boolean.valueOf("false"));
   background(255);
-  font = createFont("D2CodingBold-Ver1.3.2-20180524.ttfs", 32);
+  font = createFont("D2CodingBold-Ver1.3.2-20180524.ttf", 32);
   //println(PFont.list());
   size(1580, 770);
   rectMode(CORNERS);
   fill(127);
   textFont(font);
   toggle = false;
-
-  semester_info = loadTable("semester_info.csv", "header");
-  semester = new Table();
-
+  
   sem_list = new String[6];
   sem_list[0] = "1-1";
   sem_list[1] = "1-2";
@@ -36,43 +33,6 @@ void setup() {
   sem_list[3] = "2-2";
   sem_list[4] = "3-1";
   sem_list[5] = "3-2";
-
-  tabs = new Tab[semester_info.getRowCount()];
-  int tmp = 0;
-  for (TableRow row : semester_info.rows()) {
-    String name = row.getString("subject");
-    Boolean exam_1 = Boolean.valueOf(row.getString("exam_1"));
-    Boolean exam_2 = Boolean.valueOf(row.getString("exam_2"));
-    int exam_per = Integer.parseInt(row.getString("exam_per"));
-    int quiz_cnt = Integer.parseInt(row.getString("quiz_cnt"));
-    float quiz_unit = Float.parseFloat(row.getString("quiz_unit"));
-    int quiz_score = Integer.parseInt(row.getString("quiz_score"));
-    float task_unit = Float.parseFloat(row.getString("task_unit"));
-    String task_scores = row.getString("task_scores");
-    String[] sep = task_scores.split("/");
-    int[] tasks = new int[sep.length];
-    color col = color(255, 255, 255);
-    tabs[tmp] = new Tab(name, 0, 250, (int)((float)tmp * height / tabs.length), (int)((float)(tmp+1) * height / tabs.length), col);
-    if (task_scores == "") {
-      tabs[tmp].sub = new Subject(name, exam_1, exam_2, exam_per, quiz_cnt, quiz_unit, quiz_score, task_unit, semester);
-    } else {
-      for (int i=0; i<sep.length; i++) {
-        tasks[i] = Integer.parseInt(sep[i]);
-      }
-      tabs[tmp].sub = new Subject(name, exam_1, exam_2, exam_per, quiz_cnt, quiz_unit, quiz_score, task_unit, semester, tasks);
-    }
-    tmp++;
-  }
-
-  semester.addColumn("subject");
-  semester.addColumn("exam_1");
-  semester.addColumn("exam_2");
-  semester.addColumn("quiz_score");
-  semester.addColumn("task_score");
-  semester.addColumn("grade");
-  for (int i=0; i<tabs.length; i++) {
-    tabs[i].sub.saveRow(false);
-  }
 
   change_mode = new Button(890, 30, 1090, 75, 20, "누적 학기 모드");
   change_mode_ = new Button(890, 30, 1090, 75, 20, "현재 학기 모드");
@@ -132,10 +92,42 @@ void setup() {
   for (int i=0; i<tabs_input.length; i++) {
     tabs_input[i].sub.show_();
   }
-  tabs[cur_ind].col = color(127, 255, 127);
+  
   tabs_graph[cur_static_ind].col = color(127, 255, 127);
   tabs_input[cur_input_ind].col = color(127, 255, 127);
   status = 0;
+}
+
+void init() {
+  semester_info = loadTable(cur_sem + "_info.csv", "header");
+  
+  tabs = new Tab[semester_info.getRowCount()];
+  int tmp = 0;
+  for (TableRow row : semester_info.rows()) {
+    String name = row.getString("subject");
+    Boolean exam_1 = Boolean.valueOf(row.getString("exam_1"));
+    Boolean exam_2 = Boolean.valueOf(row.getString("exam_2"));
+    int exam_per = Integer.parseInt(row.getString("exam_per"));
+    int quiz_cnt = Integer.parseInt(row.getString("quiz_cnt"));
+    float quiz_unit = Float.parseFloat(row.getString("quiz_unit"));
+    int quiz_score = Integer.parseInt(row.getString("quiz_score"));
+    float task_unit = Float.parseFloat(row.getString("task_unit"));
+    String task_scores = row.getString("task_scores");
+    String[] sep = task_scores.split("/");
+    int[] tasks = new int[sep.length];
+    color col = color(255, 255, 255);
+    tabs[tmp] = new Tab(name, 0, 250, (int)((float)tmp * height / tabs.length), (int)((float)(tmp+1) * height / tabs.length), col);
+    if (task_scores == "") {
+      tabs[tmp].sub = new Subject(name, exam_1, exam_2, exam_per, quiz_cnt, quiz_unit, quiz_score, task_unit, semester, cur_sem);
+    } else {
+      for (int i=0; i<sep.length; i++) {
+        tasks[i] = Integer.parseInt(sep[i]);
+      }
+      tabs[tmp].sub = new Subject(name, exam_1, exam_2, exam_per, quiz_cnt, quiz_unit, quiz_score, task_unit, semester, cur_sem, tasks);
+    }
+    tmp++;
+  }
+  tabs[cur_ind].col = color(127, 255, 127);
 }
 
 void draw() {
@@ -271,6 +263,8 @@ void mousePressed() {
         status = 1;
         cur_sem = sem_list[i];
         cur_sem_ind = i;
+        init();
+        
       }
     }
     break;
@@ -297,10 +291,19 @@ void mousePressed() {
       }
     }
     tabs[cur_ind].sub.lock_chk();
+    semester = new Table();
+    semester = new Table();
+    semester.addColumn("subject");
+    semester.addColumn("exam_1");
+    semester.addColumn("exam_2");
+    semester.addColumn("quiz_score");
+    semester.addColumn("task_score");
+    semester.addColumn("grade");
+
     for (int i=0; i<tabs.length; i++) {
-      tabs[i].sub.saveRow(true);
+      tabs[i].sub.saveRow(semester);
     }
-    saveTable(semester, "data/current_semester.csv");
+    saveTable(semester, "data/" + cur_sem + "_score.csv");
     break;
   case 2:
     if (975 <= mouseX && mouseX <= 1040 && 35 <= mouseY && mouseY <= 70) {
